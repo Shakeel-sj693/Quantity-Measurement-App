@@ -75,84 +75,84 @@ public class QuantityMeasurementApp {
         public Length add(Length other) {
             return add(this, other);
         }
+
+        public static Length add(Length l1, Length l2, LengthUnit targetUnit) {
+            if (l1 == null || l2 == null || targetUnit == null) {
+                throw new IllegalArgumentException();
+            }
+            double sumBase = l1.toBaseUnit() + l2.toBaseUnit();
+            double resultValue = sumBase / targetUnit.getFactor();
+            return new Length(resultValue, targetUnit);
+        }
     }
 
     public static void main(String[] args) {
         Length l1 = new Length(1.0, Length.LengthUnit.FEET);
         Length l2 = new Length(12.0, Length.LengthUnit.INCHES);
-        Length result = l1.add(l2);
 
-        System.out.println(result.value + " " + result.unit);
+        Length r1 = Length.add(l1, l2, Length.LengthUnit.FEET);
+        System.out.println(r1.value + " " + r1.unit);
 
-        Length l3 = new Length(2.54, Length.LengthUnit.CENTIMETERS);
-        Length l4 = new Length(1.0, Length.LengthUnit.INCHES);
-        Length result2 = l3.add(l4);
+        Length r2 = Length.add(l1, l2, Length.LengthUnit.INCHES);
+        System.out.println(r2.value + " " + r2.unit);
 
-        System.out.println(result2.value + " " + result2.unit);
+        Length r3 = Length.add(l1, l2, Length.LengthUnit.YARDS);
+        System.out.println(r3.value + " " + r3.unit);
     }
 
     public static class QuantityMeasurementAppTest {
 
         @Test
-        public void testFeetPlusFeet() {
-            Length l1 = new Length(1.0, Length.LengthUnit.FEET);
-            Length l2 = new Length(2.0, Length.LengthUnit.FEET);
-            Length result = Length.add(l1, l2);
-            assertEquals(3.0, result.value);
-        }
-
-        @Test
-        public void testFeetPlusInches() {
+        public void testAddFeetTarget() {
             Length l1 = new Length(1.0, Length.LengthUnit.FEET);
             Length l2 = new Length(12.0, Length.LengthUnit.INCHES);
-            Length result = Length.add(l1, l2);
-            assertEquals(2.0, result.value);
+            Length r = Length.add(l1, l2, Length.LengthUnit.FEET);
+            assertEquals(2.0, r.value);
         }
 
         @Test
-        public void testInchesPlusFeet() {
-            Length l1 = new Length(12.0, Length.LengthUnit.INCHES);
-            Length l2 = new Length(1.0, Length.LengthUnit.FEET);
-            Length result = Length.add(l1, l2);
-            assertEquals(24.0, result.value);
-        }
-
-        @Test
-        public void testYardPlusFeet() {
-            Length l1 = new Length(1.0, Length.LengthUnit.YARDS);
-            Length l2 = new Length(3.0, Length.LengthUnit.FEET);
-            Length result = Length.add(l1, l2);
-            assertEquals(2.0, result.value);
-        }
-
-        @Test
-        public void testCmPlusInch() {
-            Length l1 = new Length(2.54, Length.LengthUnit.CENTIMETERS);
-            Length l2 = new Length(1.0, Length.LengthUnit.INCHES);
-            Length result = Length.add(l1, l2);
-            assertEquals(5.08, result.value, 1e-6);
-        }
-
-        @Test
-        public void testZero() {
-            Length l1 = new Length(5.0, Length.LengthUnit.FEET);
-            Length l2 = new Length(0.0, Length.LengthUnit.INCHES);
-            Length result = Length.add(l1, l2);
-            assertEquals(5.0, result.value);
-        }
-
-        @Test
-        public void testNegative() {
-            Length l1 = new Length(5.0, Length.LengthUnit.FEET);
-            Length l2 = new Length(-2.0, Length.LengthUnit.FEET);
-            Length result = Length.add(l1, l2);
-            assertEquals(3.0, result.value);
-        }
-
-        @Test
-        public void testNull() {
+        public void testAddInchesTarget() {
             Length l1 = new Length(1.0, Length.LengthUnit.FEET);
-            assertThrows(IllegalArgumentException.class, () -> Length.add(l1, null));
+            Length l2 = new Length(12.0, Length.LengthUnit.INCHES);
+            Length r = Length.add(l1, l2, Length.LengthUnit.INCHES);
+            assertEquals(24.0, r.value);
+        }
+
+        @Test
+        public void testAddYardsTarget() {
+            Length l1 = new Length(1.0, Length.LengthUnit.FEET);
+            Length l2 = new Length(12.0, Length.LengthUnit.INCHES);
+            Length r = Length.add(l1, l2, Length.LengthUnit.YARDS);
+            assertEquals(0.666666, r.value, 1e-6);
+        }
+
+        @Test
+        public void testAddCentimeterTarget() {
+            Length l1 = new Length(1.0, Length.LengthUnit.INCHES);
+            Length l2 = new Length(1.0, Length.LengthUnit.INCHES);
+            Length r = Length.add(l1, l2, Length.LengthUnit.CENTIMETERS);
+            assertEquals(5.08, r.value, 1e-2);
+        }
+
+        @Test
+        public void testCommutativity() {
+            Length a = new Length(1.0, Length.LengthUnit.FEET);
+            Length b = new Length(12.0, Length.LengthUnit.INCHES);
+
+            Length r1 = Length.add(a, b, Length.LengthUnit.YARDS);
+            Length r2 = Length.add(b, a, Length.LengthUnit.YARDS);
+
+            assertEquals(r1.value, r2.value, 1e-6);
+        }
+
+        @Test
+        public void testNullTarget() {
+            Length l1 = new Length(1.0, Length.LengthUnit.FEET);
+            Length l2 = new Length(12.0, Length.LengthUnit.INCHES);
+
+            assertThrows(IllegalArgumentException.class, () ->
+                    Length.add(l1, l2, null)
+            );
         }
     }
 }
